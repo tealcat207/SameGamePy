@@ -14,11 +14,11 @@ MIN_BLOCK_SIZE = 25 # Minimum size for a block to ensure visibility
 
 # Base colors
 ALL_POSSIBLE_COLORS = [
-    (209, 4, 11),    # Red
-    (6, 201, 58),    # Green
-    (4, 103, 209),    # Blue
-    (230, 242, 2),  # Yellow
-    (14, 240, 240)   # Cyan
+    (255, 0, 0),    # Red
+    (0, 255, 0),    # Green
+    (0, 0, 255),    # Blue
+    (255, 255, 0),  # Yellow
+    (0, 255, 255)   # Cyan
 ]
 
 BACKGROUND_COLOR = (30, 30, 30) # Dark grey
@@ -39,6 +39,7 @@ board = []
 score = 0
 selected_blocks = []
 game_over = False
+player_won = False # New variable to track win condition
 
 # Adjustable game settings - Default to a horizontal board
 current_num_colors = 5
@@ -59,7 +60,7 @@ def create_board():
     Initializes the game board with random colored blocks based on current settings.
     Dynamically calculates block size and margins.
     """
-    global board, score, game_over, SIDE_MARGIN, TOP_MARGIN, DYNAMIC_BLOCK_SIZE, COLORS
+    global board, score, game_over, player_won, SIDE_MARGIN, TOP_MARGIN, DYNAMIC_BLOCK_SIZE, COLORS
 
     # Calculate available space for the board
     # Account for score text and buttons at the top, and some padding at the bottom
@@ -90,6 +91,7 @@ def create_board():
     score = 0
     selected_blocks = [] # Clear selection on new game
     game_over = False
+    player_won = False # Reset win status
 
 def draw_board():
     """Draws all blocks on the screen using DYNAMIC_BLOCK_SIZE."""
@@ -178,8 +180,24 @@ def calculate_score(num_removed_blocks):
         return (num_removed_blocks - 2) ** 2
     return 0
 
+def is_board_completely_empty():
+    """Checks if the entire board is empty (all blocks are -1)."""
+    for r in range(current_board_height):
+        for c in range(current_board_width):
+            if board[r][c] != -1:
+                return False
+    return True
+
 def check_game_over():
-    """Checks if there are any possible moves left."""
+    """
+    Checks if there are any possible moves left.
+    Also updates the player_won status if the board is completely empty.
+    """
+    global player_won
+    if is_board_completely_empty():
+        player_won = True
+        return True # Game is over because the board is empty
+
     for r in range(current_board_height):
         for c in range(current_board_width):
             if board[r][c] != -1:
@@ -187,7 +205,7 @@ def check_game_over():
                 connected = find_connected_blocks(r, c, board[r][c])
                 if len(connected) >= 2:
                     return False # Possible move found
-    return True # No more moves
+    return True # No more moves, and board is not empty (player lost)
 
 
 def draw_button(rect, text, mouse_pos, clicked):
@@ -289,7 +307,7 @@ def settings_menu():
 
 # --- Main Game Loop ---
 def game_loop():
-    global score, selected_blocks, game_over
+    global score, selected_blocks, game_over, player_won
 
     game_state = "menu" # Initial state: "menu", "playing", "settings"
 
@@ -360,7 +378,7 @@ def game_loop():
                                 # Apply gravity and shift columns after removal
                                 apply_gravity()
                                 shift_columns()
-                                game_over = check_game_over() # Check if game is over
+                                game_over = check_game_over() # Check if game is over, and if player won
                             else:
                                 # New group selected, highlight them
                                 selected_blocks = current_selection
@@ -382,11 +400,19 @@ def game_loop():
             score_text = font.render(f"Score: {score}", True, TEXT_COLOR)
             screen.blit(score_text, (SIDE_MARGIN, 10))
 
-            # Display game over message
+            # Display game over/win message
             if game_over:
-                game_over_text = large_font.render("Game Over!", True, (255, 50, 50))
-                text_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-                screen.blit(game_over_text, text_rect)
+                message_text = ""
+                message_color = (255, 50, 50) # Default to red for Game Over
+                if player_won:
+                    message_text = "You Win!"
+                    message_color = (50, 255, 50) # Green for Win
+                else:
+                    message_text = "Game Over!"
+
+                game_result_text = large_font.render(message_text, True, message_color)
+                text_rect = game_result_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+                screen.blit(game_result_text, text_rect)
 
                 restart_text = font.render("Press R to Restart", True, TEXT_COLOR)
                 restart_rect = restart_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 50))
