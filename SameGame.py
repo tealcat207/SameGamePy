@@ -14,11 +14,11 @@ MIN_BLOCK_SIZE = 25 # Minimum size for a block to ensure visibility
 
 # Base colors
 ALL_POSSIBLE_COLORS = [
-    (255, 0, 0),    # Red
-    (0, 255, 0),    # Green
-    (0, 0, 255),    # Blue
-    (255, 255, 0),  # Yellow
-    (0, 255, 255)   # Cyan
+    (209, 4, 11),    # Red
+    (6, 201, 58),    # Green
+    (4, 103, 209),    # Blue
+    (230, 242, 2),  # Yellow
+    (14, 240, 240)   # Cyan
 ]
 
 BACKGROUND_COLOR = (30, 30, 30) # Dark grey
